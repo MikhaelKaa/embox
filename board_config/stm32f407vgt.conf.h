@@ -48,6 +48,25 @@ struct clk_conf clks[] = {
 	},
 };
 
+struct gpio_conf gpios[] = {
+	[0] = {
+		.status = ENABLED,
+		.dev = {
+			.name = "GPIO_PORT_A",
+			.regs = {
+				REGMAP("BASE", (GPIOA_BASE), 0x100),
+			},
+			.irqs = {
+				VAL("", 0),
+			},
+			.clocks = {
+				VAL("",   CLK_GPIOA),
+			}
+		},
+		.port_num = 7,
+		.port_width = 16,
+	},
+};
 
 struct uart_conf uarts[] = {
 	[1] = {
@@ -114,7 +133,7 @@ struct uart_conf uarts[] = {
 
 struct spi_conf spis[] = {
 	[1] = {
-		.status = ENABLED,
+		.status = DISABLED,
 		.name = "SPI1",
 		.dev = {
 			.name = "SPI1",
@@ -122,19 +141,19 @@ struct spi_conf spis[] = {
 				PIN("SCK",  GPIO_PORT_B, PIN_3, AF5),
 				PIN("MISO", GPIO_PORT_B, PIN_4, AF5),
 				PIN("MOSI", GPIO_PORT_B, PIN_5, AF5),
-				PIN("CS",   GPIO_PORT_A, PIN_15, NOAF),
+				PIN("CS",   GPIO_PORT_B, PIN_2, NOAF),
 			},
 			.clocks = {
 				VAL("SCK",  CLK_GPIOB),
 				VAL("MISO", CLK_GPIOB),
 				VAL("MOSI", CLK_GPIOB),
-				VAL("CS",   CLK_GPIOA),
+				VAL("CS",   CLK_GPIOB),
 				VAL("SPI",  CLK_SPI1),
 			}
 		},
 	},
 	[2] = {
-		.status = ENABLED,
+		.status = DISABLED,
 		.name = "SPI2",
 		.dev = {
 			.name = "SPI2",
@@ -155,15 +174,80 @@ struct spi_conf spis[] = {
 	},
 };
 
-struct led_conf leds[] = {
+struct pwm_conf pwms[] = {
 	[0] = {
-		.status = ENABLED,
-		.name = "LED1",
-		.port = VAL("", GPIO_PORT_A),
-		.pin = VAL("", 1),
-		.level = VAL("", GPIO_PIN_HIGH),
-	}
+		.name = "PWM0",
+		.channel = VAL("CHANNEL_TIM", CHANNEL_TIM1),
+		.instance = VAL("INSTANCE", TIM4),
+		.servo_low = VAL("LOW", 200),
+		.servo_high = VAL("HIGH", 1350),
+		.dev = {
+			.name = "PWM0",
+			.pins = {
+				PIN("TIM",  PB, PIN_6, AF2),
+			},
+			.clocks = {
+				VAL("GPIO",  CLK_GPIOB),
+				VAL("TIM",  CLK_TIM4),
+			}
+		},
+	},
 };
 
+struct led_conf leds[] = {
+	[0] = {
+		.name = "LED1",
+		.port = VAL("", GPIO_PORT_A),
+		.pin = VAL("", 6),
+		.level = VAL("", GPIO_PIN_HIGH),
+	},
+	[1] = {
+		.name = "LED2",
+		.port = VAL("", GPIO_PORT_A),
+		.pin = VAL("", 7),
+		.level = VAL("", GPIO_PIN_HIGH),
+	},
+};
 
-EXPORT_CONFIG(CLK(clks), UART(uarts), SPI(spis), LED(leds))
+struct mmc_conf mmcs[] = {
+	[0] = {
+		.status = ENABLED,
+		.dev = {
+			.name = "SDIO1",
+			.regs = {
+				REGMAP("BASE", (SDIO_BASE), 0x100),
+			},
+			.irqs = {
+				VAL("", 49),
+				VAL("DMA_RX", 59), /* DMA2_Stream3 */
+				VAL("DMA_TX", 69), /* DMA2_Stream6 */				
+			},
+			.pins = {
+				PIN("D0", GPIO_PORT_C, 8, AF12),
+				PIN("D1", GPIO_PORT_C, 9, AF12),
+				PIN("D2", GPIO_PORT_C, 10, AF12),
+				PIN("D3", GPIO_PORT_C, 11, AF12),
+				PIN("CK", GPIO_PORT_C, 12, AF12),
+				PIN("CMD", GPIO_PORT_D, 2, AF12),
+
+			},
+			.clocks = {
+				VAL("", STM32_CLK_ENABLE(SDIO)),
+				VAL("TRANSFER_DIV", 4),
+				VAL("DMA", STM32_CLK_ENABLE(DMA2)),
+			},
+			.misc = {
+				VAL("NAME_IN_CUBE_SDIO", 1),
+			},
+			.dmas = {
+				VAL("NUM", 2),
+				VAL("TX_CHANNEL", 4),
+				VAL("RX_CHANNEL", 4),
+				VAL("TX_STREAM", 6),
+				VAL("RX_STREAM", 3),
+			},
+		},
+	},
+};
+
+EXPORT_CONFIG(CLK(clks), GPIO(gpios), UART(uarts), SPI(spis), PWM(pwms), LED(leds), MMC(mmcs))
