@@ -166,4 +166,4 @@ struct led_conf leds[] = {
 };
 
 
-EXPORT_CONFIG(UART(uarts), SPI(spis), LED(leds))
+EXPORT_CONFIG(CLK(clks), UART(uarts), SPI(spis), LED(leds))
