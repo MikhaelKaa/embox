@@ -1,4 +1,4 @@
-#include <stm32f407vgt.conf.h>
+#include <stm32f4vgt.conf.h>
 
 CONFIG {
 	/* uarts */
